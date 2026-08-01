@@ -1,6 +1,6 @@
 # Stacks
 
-Friendly stacks to get your docker homelab up ad running
+Friendly stacks to get your docker homelab up and running
 
 ## Features
 
