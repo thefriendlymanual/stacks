@@ -1,0 +1,66 @@
+# ==========================================
+# Secrets and Credentials (CRITICAL)
+# ==========================================
+# Never commit environment configurations or raw credentials
+.env
+.env.*
+!.env.example
+*.env
+secrets/
+*.pem
+*.key
+*.pub
+*.cert
+
+# ==========================================
+# Persistent Volume and Data Storage
+# ==========================================
+# Ignore local data persistence directories managed by containers
+data/
+db_data/
+postgres_data/
+mysql_data/
+redis_data/
+mongo_data/
+minio_data/
+volumes/
+downloads/
+uploads/
+
+# ==========================================
+# Runtime and State Logs
+# ==========================================
+# Exclude dynamically generated application and service logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# Build Context and Local Dependencies
+# ==========================================
+# Keep local node/python build artifacts from polluting the stack repo
+node_modules/
+bower_components/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.target/
+dist/
+build/
+
+# ==========================================
+# IDEs, System Files, and Tools
+# ==========================================
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store
+Thumbs.db
