@@ -1,0 +1,44 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    command:
+      - --log.level=DEBUG
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=traefik
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --certificatesresolvers.myresolver.acme.dnschallenge=true
+      - --certificatesresolvers.myresolver.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.myresolver.acme.email=${CF_API_EMAIL}
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53
+    ports:
+      - 80:80
+      - 443:443
+    #      - 8080:8080
+    restart: always
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - CLOUDFLARE_PROPAGATION_TIMEOUT={$CLOUDFLARE_PROPAGATION_TIMEOUT}
+    volumes:
+      - ./letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_HOST}`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls.certresolver=myresolver
+      - traefik.http.routers.traefik.middlewares=traefik-auth
+      - traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_USER_PASS}
+networks:
+  traefik:
+    external: true

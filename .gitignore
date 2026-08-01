@@ -21,6 +21,7 @@ db_data/
 postgres_data/
 mysql_data/
 redis_data/
+letsencrypt/
 mongo_data/
 minio_data/
 volumes/
