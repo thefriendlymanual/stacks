@@ -1,0 +1,55 @@
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      # DNS Ports - We could route port 53 TCP/UDP through Traefik but exposing port 53 for the Pihole container is simpler
+      - "53:53/tcp"
+      - "53:53/udp"
+      # Default HTTP Port
+      #- "8080:80/tcp"
+      # Default HTTPs Port. Can temporarily uncomment for initial setup with Traefik if you need to set DNS record for PiHole admin
+      #- "8443:443/tcp"
+      # Uncomment the below if using Pi-hole as your DHCP Server
+      #- "67:67/udp"
+      # Uncomment the line below if you are using Pi-hole as your NTP server
+      #- "123:123/udp"
+    environment:
+      # Set the appropriate timezone for your location from
+      # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones, e.g:
+      TZ: '${PIHOLE_TIMEZONE}'
+      # Set a password to access the web interface. Not setting one will result in a random password being assigned
+      FTLCONF_webserver_api_password: '${PIHOLE_API_PASSWORD}'
+      # If using Docker's default `bridge` network setting the dns listening mode should be set to 'ALL'
+      FTLCONF_dns_listeningMode: 'ALL'
+    # Volumes store your data between container upgrades
+    volumes:
+      # For persisting Pi-hole's databases and common configuration file
+      - pihole:/etc/pihole
+      - dnsmasq.d:/etc/dnsmasq.d
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.pihole.service=pihole_service
+      - traefik.http.routers.pihole.rule=Host(`${PIHOLE_HOST}`)
+      - traefik.http.routers.pihole.entrypoints=websecure
+      - traefik.http.routers.pihole.tls.certresolver=myresolver
+      - traefik.http.services.pihole_service.loadbalancer.server.port=80    
+    #cap_add:
+      # See https://docs.pi-hole.net/docker/configuration/#note-on-capabilities
+      # Required if you are using Pi-hole as your DHCP server, else not needed
+      #- NET_ADMIN
+      # Required if you are using Pi-hole as your NTP client to be able to set the host's system time
+      #- SYS_TIME
+      # Optional, if Pi-hole should get some more processing time
+      #- SYS_NICE
+    restart: unless-stopped
+volumes:
+  pihole:
+  dnsmasq.d:
+networks:
+  traefik:
+    external: true
