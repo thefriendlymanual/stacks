@@ -1,0 +1,18 @@
+services:
+  it-tools:
+    container_name: it-tools
+    restart: unless-stopped
+    image: corentinth/it-tools:latest
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.tools.service=tools_service
+      - traefik.http.routers.tools.rule=Host(`${IT_TOOLS_HOST}`)
+      - traefik.http.routers.tools.entrypoints=websecure
+      - traefik.http.routers.tools.tls.certresolver=myresolver
+      - traefik.http.services.tools_service.loadbalancer.server.port=80
+networks:
+  traefik:
+    external: true

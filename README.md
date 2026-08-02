@@ -14,7 +14,7 @@ Friendly stacks to get your docker homelab up and running
 - API token for Cloudflare DNS API as describeed in the [Cloudflare Documentation](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)
 - DNS A or CNAME records pointing to your apps (Note with DNS-01 ACME challenge, you do not need to configure an external record for services on your local network. Just use a local DNS server or hosts file.)
 - Debian/Ubuntu host with Docker and Docker compose installed as described at [Get Docker](https://get.docker.com/).
-- This repo is geared towards a homelab on a private network which is not published to the public internet. No special steps have been attmpted to secure services if published to the internet and this is left as an exericse to the homelabber who has this requirement. A mesh VPN such as Netbird or Tailscale is recommende  for remote access in most use cases.
+- This repo is geared towards a homelab on a private network which is not published to the public internet. No special steps have been attmpted to secure services if published to the internet and this is left as an exericse to the homelabber who has this requirement. A mesh VPN such as Netbird or Tailscale is recommended  for remote access in most use cases.
 
 ## Quick Start
 
