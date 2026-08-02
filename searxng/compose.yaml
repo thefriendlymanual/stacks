@@ -1,0 +1,21 @@
+services:
+  searxng:
+    volumes:
+      - searxng:/etc/searxng
+    image: searxng/searxng
+    networks:
+      - traefik
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.searxng.service=searxng_service
+      - traefik.http.routers.searxng.rule=Host(`${INSTANCE_NAME}`)
+      - traefik.http.routers.searxng.entrypoints=websecure
+      - traefik.http.routers.searxng.tls.certresolver=myresolver
+      - traefik.http.services.searxng_service.loadbalancer.server.port=8080
+volumes:
+  searxng:
+networks:
+  traefik:
+    external: true

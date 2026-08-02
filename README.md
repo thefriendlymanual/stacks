@@ -58,3 +58,7 @@ The following Conventions are used in the stacks
 - Docker images are specified with the "latest' tag. Best practice in production is to pin this to a specific tag/version.
 - Docker named volumes are used for persisting important app data. By default on Debian based systems these are located at ```/var/lib/docker/volumes/``` If your app data is important to you, you will want to back these up.
 - Bind mounts in the folder for each app may be used for config data or data that is recreated by the app. So if you back up the ```~/stacks/``` folder and ```/var/lib/docker/volumes``` you should be good.
+
+## Licensing
+
+This reporsitory is licensed under the MIT License. This license applies to the content of this repository only. Please consult the official documentation of each application or component for its licensing terms.
