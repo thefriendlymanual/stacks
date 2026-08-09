@@ -27,6 +27,7 @@ minio_data/
 volumes/
 downloads/
 uploads/
+config/
 
 # ==========================================
 # Runtime and State Logs

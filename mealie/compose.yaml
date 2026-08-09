@@ -1,0 +1,48 @@
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie # 
+
+    container_name: mealie
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1000M # 
+
+    networks:
+      - traefik
+    volumes:
+      - mealie-data:/app/data/
+    environment:
+      # Set Backend ENV Variables Here
+      ALLOW_SIGNUP: "false"
+      PUID: 1000
+      PGID: 1000
+      TZ: ${TZ}
+      BASE_URL: ${BASE_URL}
+      #OPENAI details can point to any OpenAI compatible API endpoint. Sign up for Ollama Cloud free tier if you don't have anything else.
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL}
+      OPENAI_API_KEY: ${OPENAI_MODEL}
+      # A small Multimodal model which can receive text and images should work OK - GPT 5 Nano or Gemma 4
+      OPENAI_MODEL: ${OPENAI_MODEL}
+      #Uncomment SMTP environment variables if using
+      #SMTP_HOST: ${SMTP_HOST}
+      #SMTP_PORT: ${SMTP_PORT}
+      #SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+      #SMTP_AUTH_STRATEGY: ${SMTP_AUTH_STRATEGY}
+      #SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      #SMTP_USER: ${SMTP_USER}
+      #SMTP_PASSWORD: ${SMTP_PASSWORD}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.mealie.service=mealie_service
+      - traefik.http.routers.mealie.rule=Host(`${MEALIE_HOST}`)
+      - traefik.http.routers.mealie.entrypoints=websecure
+      - traefik.http.routers.mealie.tls.certresolver=myresolver
+      - traefik.http.services.mealie_service.loadbalancer.server.port=9000
+volumes:
+  mealie-data:
+networks:
+  traefik:
+    external: true
