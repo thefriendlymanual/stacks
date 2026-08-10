@@ -1,0 +1,54 @@
+name: glpi
+
+services:
+  glpi:
+    image: "glpi/glpi:latest"
+    restart: "unless-stopped"
+    volumes:
+      # Using a named volume avoids permission issues on host (automatically managed by Docker)
+      - glpi_data:/var/glpi
+      # Bind mount for custom .ini file for PHP directives
+      - "./custom-config.ini:/usr/local/etc/php/conf.d/custom-config.ini:ro"
+      # Use Host Timezone for container
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - traefik
+      - backend
+    env_file: .env
+    depends_on:
+      - db
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.glpi.service=glpi_service
+      - traefik.http.routers.glpi.rule=Host(`${GLPI_HOST}`)
+      - traefik.http.routers.glpi.entrypoints=websecure
+      - traefik.http.routers.glpi.tls.certresolver=myresolver
+      - traefik.http.services.glpi_service.loadbalancer.server.port=80
+
+  db:
+    image: "mysql"
+    restart: "unless-stopped"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - backend
+    environment:
+      #To set explicit root password uncomment MYSQL_ROOT_PASSWORD and comment out MYSQL_RANDOM_ROOT_PASSWORD
+      #MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${GLPI_DB_NAME}
+      MYSQL_USER: ${GLPI_DB_USER}
+      MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
+
+volumes:
+  glpi_data:
+  db_data:
+# I like to put Database and other backend services in a backend or internal network so they are more isolated from the outside world.
+# Tip: We use the 'traefik.docker.network' label to force Traefik to bind to the correct ingress network on start up.
+networks:
+  traefik:
+    external: true
+  backend:
+    external: false
