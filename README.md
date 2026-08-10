@@ -27,7 +27,7 @@ cd ./stacks/traefik-cf
 cp ./.env.example ./.env
 ```
 
-Create bcrypt hash for your Traefik dashboard username (replace 'username' below with actual username)
+Create bcrypt hash for your Traefik dashboard password (replace 'username' below with actual username)
 
 ```bash
 echo $(htpasswd -nB username) | sed -e 's/\$/\$\$/g'
