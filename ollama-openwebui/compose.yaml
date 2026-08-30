@@ -1,0 +1,43 @@
+services:
+  ollama:
+    mem_limit: ${OLLAMA_MEM_LIMIT} # Set according to your hardware
+    volumes:
+      - ollama:/root/.ollama
+    networks:
+      - traefik
+    container_name: ollama
+    image: ollama/ollama
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.ollama.service=ollama_service
+      - traefik.http.routers.ollama.rule=Host(`${OLLAMA_HOST}`)
+      - traefik.http.routers.ollama.entrypoints=websecure
+      - traefik.http.routers.ollama.tls.certresolver=myresolver
+      - traefik.http.services.ollama_service.loadbalancer.server.port=11434
+
+  open-webui:
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+    volumes:
+      - open-webui:/app/backend/data
+    container_name: open-webui
+    restart: always
+    image: ghcr.io/open-webui/open-webui:main
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.openwebui.service=openwebui_service
+      - traefik.http.routers.openwebui.rule=Host(`${OPENWEBUI_HOST}`)
+      - traefik.http.routers.openwebui.entrypoints=websecure
+      - traefik.http.routers.openwebui.tls.certresolver=myresolver
+      - traefik.http.services.openwebui_service.loadbalancer.server.port=8080
+volumes:
+  ollama:
+  open-webui:
+networks:
+  traefik:
+    external: true
