@@ -1,0 +1,78 @@
+services:
+  db:
+    image: mariadb:latest # pin to version in production
+    container_name: wp_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-wordpress}
+      MYSQL_USER: ${MYSQL_USER:-wordpress}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-wordpress}
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine # pin to version in production
+    container_name: wp_redis
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wordpress:
+    image: wordpress:latest
+    container_name: wp_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-wordpress}
+      WORDPRESS_DB_USER: ${MYSQL_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-wordpress}
+      # Redis connection details, read by the Redis Object Cache plugin
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_REDIS_HOST', 'redis');
+        define('WP_REDIS_PORT', 6379);
+        define('WP_CACHE', true);
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.wp.service=wp_service
+      - traefik.http.routers.wp.rule=Host(`${WP_HOST}`)
+      - traefik.http.routers.wp.entrypoints=websecure
+      - traefik.http.routers.wp.tls.certresolver=myresolver
+      - traefik.http.services.wp_service.loadbalancer.server.port=80
+    volumes:
+      - wp_data:/var/www/html
+    networks:
+      - traefik
+      - backend
+
+volumes:
+  db_data:
+  wp_data:
+  redis_data:
+
+networks:
+  traefik:
+    external: true
+  backend:
+    external: false
