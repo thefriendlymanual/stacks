@@ -1,0 +1,31 @@
+services:
+  bentopdf:
+    # GitHub Container Registry (Recommended)
+    # Self-Hosted build - ghcr.io/alam00000/bentopdf-simple:latest
+    # Commercial build  - ghcr.io/alam00000/bentopdf:latest
+    # Docker Hub (Alternative)
+    # Self-Hosted build - bentopdfteam/bentopdf-simple:latest
+    # Commercial build  - bentopdfteam/bentopdf:latest
+    image: ghcr.io/alam00000/bentopdf-simple:latest
+    container_name: bentopdf
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.bentopdf.service=bentopdf_service
+      - traefik.http.routers.bentopdf.rule=Host(`${BENTOPDF_HOST}`)
+      - traefik.http.routers.bentopdf.entrypoints=websecure
+      - traefik.http.routers.bentopdf.tls=true
+      - traefik.http.routers.bentopdf.tls.certresolver=myresolver
+      - traefik.http.routers.bentopdf.middlewares=bentopdf-wasm-headers
+      - traefik.http.middlewares.bentopdf-wasm-headers.headers.customResponseHeaders.Cross-Origin-Opener-Policy=same-origin
+      - traefik.http.middlewares.bentopdf-wasm-headers.headers.customResponseHeaders.Cross-Origin-Embedder-Policy=require-corp
+      - traefik.http.services.bentopdf_service.loadbalancer.server.port=8080
+    # For IPv4-only environments
+    #environment:
+    #  - DISABLE_IPV6=true
+networks:
+  traefik:
+    external: true    
