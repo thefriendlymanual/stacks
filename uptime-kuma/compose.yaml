@@ -1,0 +1,39 @@
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: always
+    volumes:
+      - uptime_kuma:/app/data  # Configuring persistent storage
+    environment:
+      - TZ=Africa/Johannesburg  # Set the timezone (change to your preferred local timezone so monitoring times are the same)
+      - UMASK=0022  # Set your file permissions manually
+    networks:
+      - traefik
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.uptimekuma.service=uptimekuma_service
+      - traefik.http.routers.uptimekuma.rule=Host(`${UPTIMEKUMA_HOST}`)
+      - traefik.http.routers.uptimekuma.entrypoints=websecure
+      - traefik.http.routers.uptimekuma.tls=true
+      - traefik.http.routers.uptimekuma.tls.certresolver=myresolver
+      - traefik.http.services.uptimekuma_service.loadbalancer.server.port=3001
+
+volumes:
+  uptime_kuma:
+
+networks:
+  traefik:
+    external: true    
