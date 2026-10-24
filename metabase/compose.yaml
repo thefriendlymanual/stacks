@@ -2,10 +2,18 @@ services:
   metabase:
     image: metabase/metabase:latest
     container_name: metabase
+    restart: "unless-stopped"
+    depends_on:
+      - mb_postgres
     environment:
-      - MB_DB_FILE=/metabase-data/metabase.db
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${POSTGRES_DB}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER}
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
+      MB_DB_HOST: mb_postgres
     volumes:
-      - metabase-data:/metabase-data
+      - /dev/urandom:/dev/random:ro
     networks:
       - traefik
     labels:
@@ -16,8 +24,22 @@ services:
       - traefik.http.routers.metabase.entrypoints=websecure
       - traefik.http.routers.metabase.tls.certresolver=myresolver
       - traefik.http.services.metabase_service.loadbalancer.server.port=3000
+  
+  mb_postgres:
+    image: postgres:16 #Must specify a version - latest tag doesn't work
+    container_name: postgres
+    restart: "unless-stopped"
+    hostname: postgres"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - metabase_data:/var/lib/postgresql/data
+    networks:
+      - traefik
 networks:
   traefik:
     external: true
 volumes:
-  metabase-data:
+  metabase_data:
