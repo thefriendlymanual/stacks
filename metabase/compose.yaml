@@ -1,0 +1,23 @@
+services:
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    environment:
+      - MB_DB_FILE=/metabase-data/metabase.db
+    volumes:
+      - metabase-data:/metabase-data
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.metabase.service=metabase_service
+      - traefik.http.routers.metabase.rule=Host(`${METABASE_HOST}`)
+      - traefik.http.routers.metabase.entrypoints=websecure
+      - traefik.http.routers.metabase.tls.certresolver=myresolver
+      - traefik.http.services.metabase_service.loadbalancer.server.port=3000
+networks:
+  traefik:
+    external: true
+volumes:
+  metabase-data:
