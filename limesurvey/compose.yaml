@@ -1,0 +1,44 @@
+services:
+
+  limesurvey:
+    image: adamzammit/limesurvey:latest
+    environment:
+      LIMESURVEY_DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      LIMESURVEY_ADMIN_USER: ${LIMESURVEY_ADMIN_USER}
+      LIMESURVEY_ADMIN_PASSWORD: ${LIMESURVEY_ADMIN_PASSWORD}
+      LIMESURVEY_ADMIN_NAME: ${LIMESURVEY_ADMIN_NAME}
+      LIMESURVEY_ADMIN_EMAIL: ${LIMESURVEY_ADMIN_EMAIL}
+      TZ: ${TZ}
+    volumes:
+      - ./plugins:/var/www/html/plugins
+      - ./upload:/var/www/html/upload
+      - ./config:/var/www/html/application/config
+      - ./sessions:/var/lime/sessions
+    networks:
+      - traefik
+      - backend
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.lime.service=lime_service
+      - traefik.http.routers.lime.rule=Host(`${LIMESURVEY_HOST}`)
+      - traefik.http.routers.lime.entrypoints=websecure
+      - traefik.http.routers.lime.tls.certresolver=myresolver
+      - traefik.http.services.lime_service.loadbalancer.server.port=80
+  
+  mysql:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_AUTO_UPGRADE: true
+    volumes:
+       - limedb:/var/lib/mysql
+    networks:
+      - backend
+networks:
+  traefik:
+    external: true
+  backend:
+    external: false
+volumes:
+  limedb:
